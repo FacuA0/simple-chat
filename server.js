@@ -8,8 +8,7 @@ let wsServer = new WebSocketServer({noServer: true});
 let conexiones = [];
 let chat = [];
 
-let server = http.createServer();
-server.on("request", manejarSolicitudWeb);
+let server = http.createServer(manejarSolicitudWeb);
 server.on("upgrade", (req, socket, head) => {
     if (req.url == "/ws") {
         wsServer.handleUpgrade(req, socket, head, ws => {
@@ -60,10 +59,14 @@ function nuevoMensaje(socket, datos) {
 
     console.log(conexion.nombre + ": " + datosTexto);
 
-    if (json.nombre) {
+    let tipo = json.tipo;
+    if (tipo == "entrar") {
         conexion.nombre = json.nombre;
 
-        let datoChat = JSON.stringify({ chat });
+        let datoChat = JSON.stringify({
+            tipo: "enviarChat",
+            chat
+        });
         socket.send(datoChat);
 
         let mensaje = {
@@ -74,7 +77,7 @@ function nuevoMensaje(socket, datos) {
 
         enviarMensaje(mensaje);
     }
-    else if (json.mensaje) {
+    else if (tipo == "enviarMensaje") {
         let nombre = conexion.nombre;
         if (nombre == null) return;
 
@@ -86,12 +89,27 @@ function nuevoMensaje(socket, datos) {
 
         enviarMensaje(mensaje, socket);
     }
+    else if (tipo == "obtenerMiembros") {
+        let nombre = conexion.nombre;
+        if (nombre == null) return;
+
+        let miembros = conexiones.map(conexion => conexion.nombre).filter(nombre => nombre !== null);
+        let datoLista = JSON.stringify({
+            tipo: "enviarMiembros",
+            miembros
+        });
+
+        socket.send(datoLista);
+    }
 }
 
 function enviarMensaje(mensaje, remitente) {
     chat.push(mensaje);
 
-    let datoMensaje = JSON.stringify({ mensaje });
+    let datoMensaje = JSON.stringify({
+        tipo: "nuevoMensaje",
+        mensaje
+    });
 
     conexiones.forEach(c => {
         if (remitente && c.socket === remitente) return;

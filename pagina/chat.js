@@ -1,12 +1,19 @@
 let nombre = "";
 let chat = [];
-let divChat, campo, titulo;
+let miembros = [];
+let titulo, divMiembros, listaMiembros, divChat, campo;
 let ws;
 
 window.onload = function() { 
-    divChat = document.querySelector("#chat");
     titulo = document.querySelector("#titulo");
+    divMiembros = document.querySelector("#miembros");
+    listaMiembros = document.querySelector("#lista-miembros");
+    divChat = document.querySelector("#chat");
     campo = document.querySelector("#campo");
+
+    document.querySelector("#abrir-miembros").addEventListener("click", abrirListaMiembros);
+    document.querySelector("#cerrar-miembros").addEventListener("click", cerrarListaMiembros);
+    document.querySelector("#enviar").addEventListener("click", enviarMensaje);
 
     campo.addEventListener("keypress", evt => {
         if (evt.key == "Enter") {
@@ -22,23 +29,32 @@ window.onload = function() {
     titulo.textContent = "Chat (conectando)";
     ws = new WebSocket("ws://" + location.host + "/ws");
     ws.addEventListener("open", () => {
-        let datoNombre = JSON.stringify({ nombre });
+        let datoNombre = JSON.stringify({
+            tipo: "entrar",
+            nombre
+        });
         ws.send(datoNombre);
+
         titulo.textContent = "Chat";
     });
 
     ws.addEventListener("message", datos => {
         let json = JSON.parse(datos.data);
         
-        if (json.chat) {
+        let tipo = json.tipo;
+        if (tipo == "enviarChat") {
             chat = json.chat;
 
             actualizarChat();
             mostrarChatAbajo();
         }
-        else if (json.mensaje) {
+        else if (tipo == "nuevoMensaje") {
             sumarMensaje(json.mensaje);
             mostrarChatAbajo();
+        }
+        else if (tipo == "enviarMiembros") {
+            miembros = json.miembros;
+            actualizarMiembros();
         }
     });
 
@@ -64,7 +80,10 @@ function enviarMensaje() {
         mensaje: texto
     };
 
-    ws.send(JSON.stringify({ mensaje: texto }));
+    ws.send(JSON.stringify({
+        tipo: "enviarMensaje",
+        mensaje: texto
+    }));
 
     campo.value = "";
 
@@ -72,11 +91,33 @@ function enviarMensaje() {
     mostrarChatAbajo();
 }
 
+function cerrarListaMiembros() {
+    divMiembros.className = "";
+}
+
+function abrirListaMiembros() {
+    divMiembros.className = "abierto";
+
+    ws.send(JSON.stringify({
+        tipo: "obtenerMiembros"
+    }));
+}
+
 function actualizarChat() {
     divChat.innerHTML = "";
 
     chat.forEach(mensaje => {
         sumarMensaje(mensaje);
+    });
+}
+
+function actualizarMiembros() {
+    listaMiembros.innerHTML = "";
+
+    miembros.forEach(miembro => {
+        let pMiembro = document.createElement("p");
+        pMiembro.textContent = miembro;
+        listaMiembros.appendChild(pMiembro);
     });
 }
 

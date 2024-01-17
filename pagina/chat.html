@@ -12,11 +12,21 @@
     <body>
         <header>
             <p id="titulo">Chat</p>
+            <div id="abrir-miembros" class="boton-icono" title="Abrir lista de miembros">
+                <img src="images/Miembros.png">
+            </div>
         </header>
+        <div id="miembros">
+            <p id="titulo-miembros">Participantes</p>
+            <div id="cerrar-miembros" class="boton-icono" title="Cerrar">
+                <img src="images/Cerrar.png">
+            </div>
+            <div id="lista-miembros"></div>
+        </div>
         <div id="chat"></div>
         <div id="area-campo">
             <input type="text" id="campo">
-            <div id="enviar" title="Enviar" onclick="enviarMensaje();">
+            <div id="enviar" class="boton-icono" title="Enviar">
                 <img src="images/Enviar.png">
             </div>
         </div>
