@@ -1,0 +1,15 @@
+{
+  "name": "chat-simple",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Un chat simple",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "FacuA0",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}
