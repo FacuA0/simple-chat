@@ -12,10 +12,16 @@
     <body>
         <header>
             <p id="titulo">Chat</p>
+
+            <div id="modo-oscuro" class="boton-icono" title="Modo oscuro">
+                <img src="images/Oscuro.png">
+            </div>
+
             <div id="abrir-miembros" class="boton-icono" title="Abrir lista de miembros">
                 <img src="images/Miembros.png">
             </div>
         </header>
+
         <div id="miembros">
             <p id="titulo-miembros">Participantes</p>
             <div id="cerrar-miembros" class="boton-icono" title="Cerrar">
@@ -23,9 +29,12 @@
             </div>
             <div id="lista-miembros"></div>
         </div>
+
         <div id="chat"></div>
+
         <div id="area-campo">
-            <input type="text" id="campo">
+            <input type="text" id="campo" placeholder="Escribe un mensaje">
+
             <div id="enviar" class="boton-icono" title="Enviar">
                 <img src="images/Enviar.png">
             </div>

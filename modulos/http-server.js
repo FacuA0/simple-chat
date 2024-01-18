@@ -18,6 +18,8 @@ const tiposMedia = new Map([
 function manejarSolicitudWeb(req, res) {
     let path = "./pagina" + req.url;
     if (req.url == "/") path = "./pagina/chat.html";
+    
+    path = decodeURIComponent(path);
 
     console.log(`Solicitud de ${req.url}`);
 

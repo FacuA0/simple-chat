@@ -1,21 +1,30 @@
 let nombre = "";
 let chat = [];
 let miembros = [];
-let titulo, divMiembros, listaMiembros, divChat, campo;
+let reintentoConexion = -1;
+let modoOscuro = false;
+let html;
 let ws;
 
 window.onload = function() { 
-    titulo = document.querySelector("#titulo");
-    divMiembros = document.querySelector("#miembros");
-    listaMiembros = document.querySelector("#lista-miembros");
-    divChat = document.querySelector("#chat");
-    campo = document.querySelector("#campo");
+    html = {
+        titulo: document.querySelector("#titulo"),
+        miembros: document.querySelector("#miembros"),
+        listaMiembros: document.querySelector("#lista-miembros"),
+        chat: document.querySelector("#chat"),
+        campo: document.querySelector("#campo"),
+        botonOscuro: document.querySelector("#modo-oscuro"),
+        botonMiembros: document.querySelector("#abrir-miembros"),
+        cerrarMiembros: document.querySelector("#cerrar-miembros"),
+        enviar: document.querySelector("#enviar")
+    };
 
-    document.querySelector("#abrir-miembros").addEventListener("click", abrirListaMiembros);
-    document.querySelector("#cerrar-miembros").addEventListener("click", cerrarListaMiembros);
-    document.querySelector("#enviar").addEventListener("click", enviarMensaje);
+    html.botonOscuro.addEventListener("click", cambiarModoOscuro);
+    html.botonMiembros.addEventListener("click", abrirListaMiembros);
+    html.cerrarMiembros.addEventListener("click", cerrarListaMiembros);
+    html.enviar.addEventListener("click", enviarMensaje);
 
-    campo.addEventListener("keypress", evt => {
+    html.campo.addEventListener("keypress", evt => {
         if (evt.key == "Enter") {
             enviarMensaje();
         }
@@ -26,7 +35,12 @@ window.onload = function() {
     }
     while (!nombre);
 
-    titulo.textContent = "Chat (conectando)";
+    establecerSocket();
+};
+
+function establecerSocket() {
+    html.titulo.textContent = "Chat (conectando)";
+
     ws = new WebSocket("ws://" + location.host + "/ws");
     ws.addEventListener("open", () => {
         let datoNombre = JSON.stringify({
@@ -35,7 +49,7 @@ window.onload = function() {
         });
         ws.send(datoNombre);
 
-        titulo.textContent = "Chat";
+        html.titulo.textContent = "Chat";
     });
 
     ws.addEventListener("message", datos => {
@@ -67,12 +81,14 @@ window.onload = function() {
         let limpio = evt.wasClean ? " de forma limpia" : "";
 
         console.error("Conexión cerrada" + limpio + " (" + evt.code + ": " + evt.reason + ")");
-        titulo.textContent = "Chat (desconectado)";
+        html.titulo.textContent = "Chat (desconectado)";
+
+        setTimeout(establecerSocket, 5000);
     });
-};
+}
 
 function enviarMensaje() {
-    let texto = campo.value;
+    let texto = html.campo.value;
     if (texto == "") return;
 
     let mensaje = {
@@ -85,18 +101,43 @@ function enviarMensaje() {
         mensaje: texto
     }));
 
-    campo.value = "";
+    html.campo.value = "";
 
     sumarMensaje(mensaje);
     mostrarChatAbajo();
 }
 
+function cambiarModoOscuro(modo) {
+    if (typeof modo !== "boolean") {
+        cambiarModoOscuro(!modoOscuro);
+        return;
+    }
+
+    modoOscuro = modo;
+    document.body.className = modo ? "oscuro" : "";
+
+    let titulo = modo ? "Modo claro" : "Moso oscuro";
+    let icono = modo ? "images/Claro.png" : "images/Oscuro.png";
+    
+    html.botonOscuro.title = titulo;
+    html.botonOscuro.firstElementChild.src = icono;
+
+    let iconoMiembros = modo ? "images/Miembros oscuro.png" : "images/Miembros.png";
+    html.botonMiembros.firstElementChild.src = iconoMiembros;
+
+    let iconoCerrar = modo ? "images/Cerrar oscuro.png" : "images/Cerrar.png";
+    html.cerrarMiembros.firstElementChild.src = iconoCerrar;
+
+    let iconoEnviar = modo ? "images/Enviar oscuro.png" : "images/Enviar.png";
+    html.enviar.firstElementChild.src = iconoEnviar;
+}
+
 function cerrarListaMiembros() {
-    divMiembros.className = "";
+    html.miembros.className = "";
 }
 
 function abrirListaMiembros() {
-    divMiembros.className = "abierto";
+    html.miembros.className = "abierto";
 
     ws.send(JSON.stringify({
         tipo: "obtenerMiembros"
@@ -104,7 +145,7 @@ function abrirListaMiembros() {
 }
 
 function actualizarChat() {
-    divChat.innerHTML = "";
+    html.chat.innerHTML = "";
 
     chat.forEach(mensaje => {
         sumarMensaje(mensaje);
@@ -112,12 +153,12 @@ function actualizarChat() {
 }
 
 function actualizarMiembros() {
-    listaMiembros.innerHTML = "";
+    html.listaMiembros.innerHTML = "";
 
     miembros.forEach(miembro => {
         let pMiembro = document.createElement("p");
         pMiembro.textContent = miembro;
-        listaMiembros.appendChild(pMiembro);
+        html.listaMiembros.appendChild(pMiembro);
     });
 }
 
@@ -136,9 +177,9 @@ function sumarMensaje(mensaje) {
     if (!mensaje.sistema) msj.appendChild(autor);
     msj.appendChild(texto);
 
-    divChat.appendChild(msj);
+    html.chat.appendChild(msj);
 }
 
 function mostrarChatAbajo() {
-    divChat.scrollTop = divChat.scrollHeight - divChat.clientHeight;
+    html.chat.scrollTop = html.chat.scrollHeight - html.chat.clientHeight;
 }
