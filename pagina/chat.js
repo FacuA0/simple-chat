@@ -30,10 +30,17 @@ window.onload = function() {
         }
     });
 
-    do {
+    nombre = localStorage.getItem("nombre");
+
+    if (nombre && !confirm(`¿Deseas volver a usar el nombre "${nombre}"?`)) {
+        nombre = null;
+    }
+
+    while (!nombre) {
         nombre = prompt("Escoje tu nombre");
     }
-    while (!nombre);
+
+    localStorage.setItem("nombre", nombre);
 
     establecerSocket();
 };

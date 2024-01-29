@@ -1,10 +1,16 @@
 import http from "http";
-//import fs from "fs";
+import fs from "fs";
+import process from "process";
 import { WebSocketServer } from "ws";
 import { manejarSolicitudWeb } from "./modulos/http-server.js";
 
 let wsServer = new WebSocketServer({noServer: true});
 
+let guardado = {
+    hora: 0,
+    guardando: false,
+    pendiente: -1
+}
 let conexiones = [];
 let chat = [];
 
@@ -20,7 +26,21 @@ server.on("upgrade", (req, socket, head) => {
     }
 });
 server.on("error", error => console.error(error));
-server.listen(9080, () => console.log("Servidor iniciado"));
+server.listen(9080, () => {
+    restaurarChat();
+
+    console.log("Servidor iniciado")
+});
+
+function restaurarChat() {
+    fs.readFile("chat/historial.json", (error, datos) => {
+        if (error) return;
+        console.log("Proceso completado con estado", error);
+
+        chat = JSON.parse(datos.toString())
+        guardado.hora = Date.now()
+    });
+}
 
 wsServer.on("connection", socket => {
     socket.on("error", error => {
@@ -105,6 +125,7 @@ function nuevoMensaje(socket, datos) {
 
 function enviarMensaje(mensaje, remitente) {
     chat.push(mensaje);
+    guardarMensaje();
 
     let datoMensaje = JSON.stringify({
         tipo: "nuevoMensaje",
@@ -115,4 +136,24 @@ function enviarMensaje(mensaje, remitente) {
         if (remitente && c.socket === remitente) return;
         c.socket.send(datoMensaje);
     });
+}
+
+function guardarMensaje() {
+    clearTimeout(guardado.pendiente);
+    guardado.pendiente = -1;
+
+    let now = Date.now();
+    if (!guardado.guardando && now - guardado.hora >= 2000) {
+        fs.writeFile("chat/historial.json", JSON.stringify(chat), error => {
+            guardado.guardando = false;
+            if (error) return;
+
+            guardado.hora = now;
+        });
+
+        guardado.guardando = true;
+    }
+    else {
+        guardado.pendiente = setTimeout(guardarMensaje, 500);
+    }
 }

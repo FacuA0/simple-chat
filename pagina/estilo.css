@@ -108,10 +108,20 @@ header > #titulo {
 .mensaje > .autor {
     font-weight: bold;
     margin: 0 0 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .mensaje > .texto {
     margin: 0;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.mensaje > .texto:first-child {
+    font-style: italic;
+    text-overflow: ellipsis;
 }
 
 .mensaje:nth-child(even) {
