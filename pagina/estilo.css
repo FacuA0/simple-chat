@@ -1,5 +1,6 @@
 body {
     --color-texto: #000;
+    --color-texto-suave: #666;
     --color-placeholder: #666;
     --color-cabecera: #FFF;
     --color-miembros: #FFF;
@@ -22,6 +23,7 @@ body {
 
 body.oscuro {
     --color-texto: #FFF;
+    --color-texto-suave: #AAA;
     --color-placeholder: #999;
     --color-cabecera: #222;
     --color-miembros: #333;
@@ -105,12 +107,23 @@ header > #titulo {
     padding: 12px 16px;
 }
 
-.mensaje > .autor {
-    font-weight: bold;
+.mensaje > .cabecera {
+    display: flex;
+    align-items: baseline;
     margin: 0 0 6px;
-    overflow: hidden;
     white-space: nowrap;
+}
+
+.mensaje > .cabecera > .autor {
+    font-weight: bold;
     text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.mensaje > .cabecera > .fecha {
+    font-size: 0.9em;
+    font-style: italic;
+    color: var(--color-texto-suave);
 }
 
 .mensaje > .texto {

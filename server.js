@@ -1,6 +1,5 @@
 import http from "http";
 import fs from "fs";
-import process from "process";
 import { WebSocketServer } from "ws";
 import { manejarSolicitudWeb } from "./modulos/http-server.js";
 
@@ -35,10 +34,15 @@ server.listen(9080, () => {
 function restaurarChat() {
     fs.readFile("chat/historial.json", (error, datos) => {
         if (error) return;
-        console.log("Proceso completado con estado", error);
 
-        chat = JSON.parse(datos.toString())
-        guardado.hora = Date.now()
+        chat = JSON.parse(datos.toString()).map(mensaje => ({
+            sistema: mensaje.sistema,
+            autor: mensaje.autor,
+            fecha: mensaje.fecha ?? null,
+            mensaje: mensaje.mensaje
+        }));
+
+        guardado.hora = Date.now();
     });
 }
 
@@ -57,6 +61,7 @@ wsServer.on("connection", socket => {
         let mensaje = {
             sistema: true,
             autor: "",
+            fecha: Date.now(),
             mensaje: `¡${nombre} ha dejado el chat!`
         };
         
@@ -92,6 +97,7 @@ function nuevoMensaje(socket, datos) {
         let mensaje = {
             sistema: true,
             autor: "",
+            fecha: Date.now(),
             mensaje: `¡${conexion.nombre} se ha unido al chat!`
         };
 
@@ -104,6 +110,7 @@ function nuevoMensaje(socket, datos) {
         let mensaje = {
             sistema: false,
             autor: nombre,
+            fecha: Date.now(),
             mensaje: json.mensaje
         };
 

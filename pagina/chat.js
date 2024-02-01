@@ -100,6 +100,7 @@ function enviarMensaje() {
 
     let mensaje = {
         autor: nombre,
+        fecha: new Date().getTime(),
         mensaje: texto
     };
 
@@ -174,8 +175,12 @@ function sumarMensaje(mensaje) {
     msj.className = "mensaje";
 
     let autor = document.createElement("p");
-    autor.className = "autor";
-    if (!mensaje.sistema) autor.textContent = mensaje.autor;
+    autor.className = "cabecera";
+
+    let fecha = new Date(mensaje.fecha).toLocaleTimeString();
+    let fechaLarga = new Date(mensaje.fecha).toLocaleString();
+    if (!mensaje.sistema) 
+        autor.innerHTML = `<span class="autor">${mensaje.autor}</span>` + (mensaje.fecha ? `&nbsp;&nbsp;●&nbsp;&nbsp;<span class="fecha" title="${fechaLarga}">${fecha}</span>` : "");
     
     let texto = document.createElement("p");
     texto.className = "texto";
