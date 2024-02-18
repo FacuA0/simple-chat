@@ -177,10 +177,16 @@ function sumarMensaje(mensaje) {
     let autor = document.createElement("p");
     autor.className = "cabecera";
 
-    let fecha = new Date(mensaje.fecha).toLocaleTimeString();
-    let fechaLarga = new Date(mensaje.fecha).toLocaleString();
-    if (!mensaje.sistema) 
-        autor.innerHTML = `<span class="autor">${mensaje.autor}</span>` + (mensaje.fecha ? `&nbsp;&nbsp;●&nbsp;&nbsp;<span class="fecha" title="${fechaLarga}">${fecha}</span>` : "");
+    let ahora = new Date(mensaje.fecha);
+    let fechaLarga = ahora.toLocaleString();
+    let hora = (ahora.getHours() + "").padStart(2, "0");
+    let minutos = (ahora.getMinutes() + "").padStart(2, "0");
+    let fecha = `${hora}:${minutos}`;
+
+    if (!mensaje.sistema) {
+        let spanFecha = mensaje.fecha ? `&nbsp;<span class="fecha" title="${fechaLarga}">${fecha}</span>` : "";
+        autor.innerHTML = `<span class="autor">${mensaje.autor}</span>` + spanFecha;
+    }
     
     let texto = document.createElement("p");
     texto.className = "texto";

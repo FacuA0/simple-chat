@@ -122,7 +122,6 @@ header > #titulo {
 
 .mensaje > .cabecera > .fecha {
     font-size: 0.9em;
-    font-style: italic;
     color: var(--color-texto-suave);
 }
 
