@@ -120,20 +120,24 @@ header > #titulo {
     overflow: hidden;
 }
 
-.mensaje > .cabecera > .fecha {
-    font-size: 0.9em;
-    color: var(--color-texto-suave);
-}
-
 .mensaje > .texto {
     margin: 0;
     overflow: hidden;
     word-wrap: break-word;
 }
 
+.mensaje .fecha {
+    font-size: 0.9em;
+    color: var(--color-texto-suave);
+}
+
 .mensaje > .texto:first-child {
     font-style: italic;
     text-overflow: ellipsis;
+}
+
+.mensaje:not(:hover) > .texto:first-child > .fecha {
+    display: none;
 }
 
 .mensaje:nth-child(even) {

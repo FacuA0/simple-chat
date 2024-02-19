@@ -50,7 +50,7 @@ function establecerSocket() {
 
     let protocolo = location.protocol == "https:" ? "wss://" : "ws://";
     ws = new WebSocket(protocolo + location.host + "/ws");
-    
+
     ws.addEventListener("open", () => {
         let datoNombre = JSON.stringify({
             tipo: "entrar",
@@ -176,20 +176,26 @@ function sumarMensaje(mensaje) {
     let msj = document.createElement("div");
     msj.className = "mensaje";
 
+    let ahora = new Date(mensaje.fecha);
+    let fechaLarga = ahora.toLocaleString();
+    let hora = (ahora.getHours() + "").padStart(2, "0");
+    let minutos = (ahora.getMinutes() + "").padStart(2, "0");
+    let fecha = `${hora}:${minutos}`;
+
+    let spanFecha = mensaje.fecha ? `&nbsp;<span class="fecha" title="${fechaLarga}">${fecha}</span>` : "";
+
     if (mensaje.tipo == "mensaje") {
-        let autor = document.createElement("p");
-        autor.className = "cabecera";
+        let cabecera = document.createElement("p");
+        cabecera.className = "cabecera";
 
-        let ahora = new Date(mensaje.fecha);
-        let fechaLarga = ahora.toLocaleString();
-        let hora = (ahora.getHours() + "").padStart(2, "0");
-        let minutos = (ahora.getMinutes() + "").padStart(2, "0");
-        let fecha = `${hora}:${minutos}`;
+        let autor = document.createElement("span");
+        autor.className = "autor";
+        autor.textContent = mensaje.autor;
 
-        let spanFecha = mensaje.fecha ? `&nbsp;<span class="fecha" title="${fechaLarga}">${fecha}</span>` : "";
-        autor.innerHTML = `<span class="autor">${mensaje.autor}</span>` + spanFecha;
+        cabecera.appendChild(autor);
+        cabecera.innerHTML += spanFecha;
 
-        msj.appendChild(autor);
+        msj.appendChild(cabecera);
     }
     
     let texto = document.createElement("p");
@@ -203,6 +209,10 @@ function sumarMensaje(mensaje) {
     }
     else if (mensaje.tipo == "salir") {
         texto.textContent = `¡${mensaje.usuario} ha dejado el chat!`;
+    }
+
+    if (mensaje.tipo != "mensaje") {
+        texto.innerHTML += spanFecha;
     }
 
     msj.appendChild(texto);
