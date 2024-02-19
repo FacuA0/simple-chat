@@ -1,17 +1,18 @@
 import http from "http";
 import fs from "fs";
+import process from "process";
 import { WebSocketServer } from "ws";
 import { manejarSolicitudWeb } from "./modulos/http-server.js";
-
-let wsServer = new WebSocketServer({noServer: true});
 
 let guardado = {
     hora: 0,
     guardando: false,
     pendiente: -1
 }
-let conexiones = [];
+let usuarios = [];
 let chat = [];
+
+let wsServer = new WebSocketServer({noServer: true});
 
 let server = http.createServer(manejarSolicitudWeb);
 server.on("upgrade", (req, socket, head) => {
@@ -28,21 +29,20 @@ server.on("error", error => console.error(error));
 server.listen(9080, () => {
     restaurarChat();
 
-    console.log("Servidor iniciado")
+    console.log("Servidor iniciado");
 });
 
 function restaurarChat() {
-    fs.readFile("chat/historial.json", (error, datos) => {
-        if (error) return;
+    fs.readFile("chat/historial.json", "utf8", (error, datos) => {
+        if (error) {
+            console.log("No se restauró el historial de chat (" + error.code + ").");
+            return;
+        }
 
-        chat = JSON.parse(datos.toString()).map(mensaje => ({
-            sistema: mensaje.sistema,
-            autor: mensaje.autor,
-            fecha: mensaje.fecha ?? null,
-            mensaje: mensaje.mensaje
-        }));
-
+        chat = JSON.parse(datos);
         guardado.hora = Date.now();
+
+        console.log("Chat restaurado");
     });
 }
 
@@ -52,17 +52,18 @@ wsServer.on("connection", socket => {
     });
 
     socket.on("close", () => {
-        let conexion = conexiones.findIndex(c => c.socket == socket);
-        let nombre = conexiones[conexion].nombre;
-        conexiones.splice(conexion, 1);
+        let usuario = usuarios.findIndex(usuario => usuario.socket == socket);
+        let nombre = usuarios[usuario].nombre;
+        usuarios.splice(usuario, 1);
         
         console.log(nombre + " cerrado");
+
+        if (nombre == null) return;
         
         let mensaje = {
-            sistema: true,
-            autor: "",
+            tipo: "salir",
             fecha: Date.now(),
-            mensaje: `¡${nombre} ha dejado el chat!`
+            usuario: nombre
         };
         
         enviarMensaje(mensaje);
@@ -70,57 +71,49 @@ wsServer.on("connection", socket => {
 
     socket.on("message", datos => nuevoMensaje(socket, datos));
 
-    conexiones.push({
+    usuarios.push({
         socket: socket,
         nombre: null
     });
 });
 
 function nuevoMensaje(socket, datos) {
-    let conexion = conexiones.find(c => c.socket == socket);
+    let usuario = usuarios.find(c => c.socket == socket);
 
     let datosTexto = datos.toString();
     let json = JSON.parse(datosTexto);
 
-    console.log(conexion.nombre + ": " + datosTexto);
-
     let tipo = json.tipo;
     if (tipo == "entrar") {
-        conexion.nombre = json.nombre;
+        usuario.nombre = json.nombre;
 
-        let datoChat = JSON.stringify({
-            tipo: "enviarChat",
-            chat
-        });
-        socket.send(datoChat);
+        enviarChat(socket);
 
         let mensaje = {
-            sistema: true,
-            autor: "",
+            tipo: "entrar",
             fecha: Date.now(),
-            mensaje: `¡${conexion.nombre} se ha unido al chat!`
+            usuario: usuario.nombre
         };
 
         enviarMensaje(mensaje);
     }
     else if (tipo == "enviarMensaje") {
-        let nombre = conexion.nombre;
+        let nombre = usuario.nombre;
         if (nombre == null) return;
 
         let mensaje = {
-            sistema: false,
-            autor: nombre,
+            tipo: "mensaje",
             fecha: Date.now(),
+            autor: nombre,
             mensaje: json.mensaje
         };
 
         enviarMensaje(mensaje, socket);
     }
     else if (tipo == "obtenerMiembros") {
-        let nombre = conexion.nombre;
-        if (nombre == null) return;
+        if (usuario.nombre == null) return;
 
-        let miembros = conexiones.map(conexion => conexion.nombre).filter(nombre => nombre !== null);
+        let miembros = usuarios.map(conexion => conexion.nombre).filter(nombre => nombre !== null);
         let datoLista = JSON.stringify({
             tipo: "enviarMiembros",
             miembros
@@ -128,24 +121,35 @@ function nuevoMensaje(socket, datos) {
 
         socket.send(datoLista);
     }
+
+    console.log(usuario.nombre + ": " + datosTexto);
+}
+
+function enviarChat(socket) {
+    let datoChat = JSON.stringify({
+        tipo: "enviarChat",
+        chat
+    });
+
+    socket.send(datoChat);
 }
 
 function enviarMensaje(mensaje, remitente) {
     chat.push(mensaje);
-    guardarMensaje();
+    guardarMensajes();
 
     let datoMensaje = JSON.stringify({
         tipo: "nuevoMensaje",
         mensaje
     });
 
-    conexiones.forEach(c => {
+    usuarios.forEach(c => {
         if (remitente && c.socket === remitente) return;
         c.socket.send(datoMensaje);
     });
 }
 
-function guardarMensaje() {
+function guardarMensajes() {
     clearTimeout(guardado.pendiente);
     guardado.pendiente = -1;
 
@@ -161,6 +165,6 @@ function guardarMensaje() {
         guardado.guardando = true;
     }
     else {
-        guardado.pendiente = setTimeout(guardarMensaje, 500);
+        guardado.pendiente = setTimeout(guardarMensajes, 500);
     }
 }

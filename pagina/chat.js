@@ -48,7 +48,9 @@ window.onload = function() {
 function establecerSocket() {
     html.titulo.textContent = "Chat (conectando)";
 
-    ws = new WebSocket("ws://" + location.host + "/ws");
+    let protocolo = location.protocol == "https:" ? "wss://" : "ws://";
+    ws = new WebSocket(protocolo + location.host + "/ws");
+    
     ws.addEventListener("open", () => {
         let datoNombre = JSON.stringify({
             tipo: "entrar",
@@ -174,25 +176,35 @@ function sumarMensaje(mensaje) {
     let msj = document.createElement("div");
     msj.className = "mensaje";
 
-    let autor = document.createElement("p");
-    autor.className = "cabecera";
+    if (mensaje.tipo == "mensaje") {
+        let autor = document.createElement("p");
+        autor.className = "cabecera";
 
-    let ahora = new Date(mensaje.fecha);
-    let fechaLarga = ahora.toLocaleString();
-    let hora = (ahora.getHours() + "").padStart(2, "0");
-    let minutos = (ahora.getMinutes() + "").padStart(2, "0");
-    let fecha = `${hora}:${minutos}`;
+        let ahora = new Date(mensaje.fecha);
+        let fechaLarga = ahora.toLocaleString();
+        let hora = (ahora.getHours() + "").padStart(2, "0");
+        let minutos = (ahora.getMinutes() + "").padStart(2, "0");
+        let fecha = `${hora}:${minutos}`;
 
-    if (!mensaje.sistema) {
         let spanFecha = mensaje.fecha ? `&nbsp;<span class="fecha" title="${fechaLarga}">${fecha}</span>` : "";
         autor.innerHTML = `<span class="autor">${mensaje.autor}</span>` + spanFecha;
+
+        msj.appendChild(autor);
     }
     
     let texto = document.createElement("p");
     texto.className = "texto";
-    texto.textContent = mensaje.mensaje;
 
-    if (!mensaje.sistema) msj.appendChild(autor);
+    if (mensaje.tipo == "mensaje" || mensaje.tipo == "sistema") {
+        texto.textContent = mensaje.mensaje;
+    }
+    else if (mensaje.tipo == "entrar") {
+        texto.textContent = `¡${mensaje.usuario} se ha unido al chat!`;
+    }
+    else if (mensaje.tipo == "salir") {
+        texto.textContent = `¡${mensaje.usuario} ha dejado el chat!`;
+    }
+
     msj.appendChild(texto);
 
     html.chat.appendChild(msj);
