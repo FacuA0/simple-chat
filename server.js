@@ -1,6 +1,5 @@
 import http from "http";
 import fs from "fs";
-import process from "process";
 import { WebSocketServer } from "ws";
 import { manejarSolicitudWeb } from "./modulos/http-server.js";
 
