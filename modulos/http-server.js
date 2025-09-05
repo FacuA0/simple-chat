@@ -1,7 +1,7 @@
-import http from "http";
-import fs from "fs";
+import http from "node:http";
+import fs from "node:fs";
 import ws from "ws";
-import internal from "stream";
+import internal from "node:stream";
 
 const tiposMedia = new Map([
     [".html", "text/html"],

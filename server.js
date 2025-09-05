@@ -1,5 +1,5 @@
-import http from "http";
-import fs from "fs";
+import http from "node:http";
+import fs from "node:fs";
 import { WebSocketServer } from "ws";
 import { manejarSolicitudWeb } from "./modulos/http-server.js";
 
